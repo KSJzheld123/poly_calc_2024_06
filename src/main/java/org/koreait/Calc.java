@@ -1,10 +1,5 @@
 package org.koreait;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
-
 public class Calc {
     public static int run(String exp) {
 
@@ -14,6 +9,14 @@ public class Calc {
         String[] bits = exp.split(" ");
         int result = 0;
         result = Integer.parseInt(bits[0]);
+
+        for(int i = 1; i < bits.length; i++) {
+            if(bits[i].contains("*")) {
+                result *= Integer.parseInt(bits[i+1]);
+            } else if(bits[i].contains("/")) {
+                result /= Integer.parseInt(bits[i+1]);
+            }
+        }
 
         for(int a = 1; a < bits.length; a++) {
             if (bits[a].contains("+")) {
