@@ -22,6 +22,8 @@ public class Calc {
             result = Integer.parseInt(middle.get(0));
         }
 
+        first.removeAll(Arrays.asList(")"));
+
         for(int i = 0; i < first.size(); i++) {
             int a = 0;
             int b = 0;
@@ -56,8 +58,6 @@ public class Calc {
             }
         }
 
-        first.removeAll(Arrays.asList("("));
-        first.removeAll(Arrays.asList(")"));
         first.removeAll(Arrays.asList("n"));
 
 //
