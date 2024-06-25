@@ -78,4 +78,10 @@ public class CalcTests {
     void t12() {
         assertThat(Calc.run("20 + 30 - 50 * 20 + 10 / 10 - 10")).isEqualTo(-959);
     }
+
+    @Test
+    @DisplayName("(10 + 20) == 30")
+    void t13() {
+        assertThat(Calc.run("(10 + 20)")).isEqualTo(30);
+    }
 }
