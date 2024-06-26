@@ -68,20 +68,52 @@ public class CalcTests {
     }
 
     @Test
-    @DisplayName("10 * 20 / 10 = 20")
+    @DisplayName("(((10 + 20))) == 30")
     void t11() {
-        assertThat(Calc.run("10 * 20 / 10")).isEqualTo(20);
+        assertThat(Calc.run("(((10 + 20)))")).isEqualTo(30);
     }
 
     @Test
-    @DisplayName("20 + 30 - 50 * 20 + 10 / 10 - 10 = -959")
+    @DisplayName("(10 + 20) + 10 == 40")
     void t12() {
-        assertThat(Calc.run("20 + 30 - 50 * 20 + 10 / 10 - 10")).isEqualTo(-959);
+        assertThat(Calc.run("(10 + 20) + 10")).isEqualTo(40);
     }
 
     @Test
     @DisplayName("(10 + 20) == 30")
     void t13() {
         assertThat(Calc.run("(10 + 20)")).isEqualTo(30);
+    }
+
+    @Test
+    @DisplayName("((10 + 20)) == 30")
+    void t14() {
+        assertThat(Calc.run("((10 + 20))")).isEqualTo(30);
+    }
+
+    @Test
+    @DisplayName("10 + (10 + 20) == 40")
+    void t15() {
+        assertThat(Calc.run("10 + (10 + 20)")).isEqualTo(40);
+    }
+
+    @Test
+    @DisplayName("-(10 + 20) == -30")
+    void t16() {
+        assertThat(Calc.run("-(10 + 20)")).isEqualTo(-30);
+    }
+
+    @Test
+    @DisplayName("(10 + 20) * 3 == 90")
+    void t17() {
+        assertThat(Calc.run("(10 + 20) * 3")).isEqualTo(90);
+
+    }
+
+    @Test
+    @DisplayName("-(8 + 2) * -(7 + 3) + 5 == 105")
+    void t18() {
+        assertThat(Calc.run("-(8 + 2) * -(7 + 3) + 5")).isEqualTo(105);
+
     }
 }

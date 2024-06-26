@@ -1,124 +1,117 @@
 package org.koreait;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.stream.Collectors;
 
 public class Calc {
+    public static boolean debug = false;
+    public static int runCallCoun = 0;
+
     public static int run(String exp) {
+        runCallCoun++;
 
-        List<String> bits = new ArrayList<>(List.of(exp.split(" ")));
-        List<String> middle = new ArrayList<>(List.of(exp.split(" ")));
-        List<String> first =  new ArrayList<>(List.of(exp.split("")));
-        List<String> last =  new ArrayList<>(List.of(exp.split("")));
-        first.removeAll(Arrays.asList(" "));
-        int result = 0;
-        int index = 0;
+        // 10 + (10 + 5)
+        exp = exp.trim(); // 양 옆의 쓸데없는 공백 제거
 
-        if((middle.get(0).contains("("))) {
-            middle.set(0, "n");
-            bits.set(0, "n");
-        } else {
-            result = Integer.parseInt(middle.get(0));
+        exp = exp.replace("-(", "-1 * (");
+
+        // 괄호 제거
+        exp = stripOuterBrackets(exp);
+
+        if (debug) {
+            System.out.printf("exp(%d) : %s\n", runCallCoun, exp);
         }
 
-        first.removeAll(Arrays.asList(")"));
+        // 단일항이 들어오면 바로 리턴
+        if (!exp.contains(" ")) {
+            return Integer.parseInt(exp);
+        }
 
-        for(int i = 0; i < first.size(); i++) {
-            int a = 0;
-            int b = 0;
-            int c = 0;
-            if(first.contains("(")) {
-                if(first.get(i+1).contains("(")) {
-                } else {
-                    a = Integer.parseInt(first.get(i+1));
-                    b = Integer.parseInt(first.get(i+3));
-                    if(first.get(i+2).contains("*")) {
-                        c = a * b;
-                        first.set(i+3, String.valueOf(c));
-                        first.set(i+2, "n");
-                        first.set(i+1, "n");
-                    } else if (first.get(i+2).contains("/")) {
-                        c = a / b;
-                        first.set(i+3, String.valueOf(c));
-                        first.set(i+2, "n");
-                        first.set(i+1, "n");
-                    } else if (first.get(i+2).contains("+")) {
-                        c = a + b;
-                        first.set(i+3, String.valueOf(c));
-                        first.set(i+2, "n");
-                        first.set(i+1, "n");
-                    } else if (first.get(i+2).contains("-")) {
-                        c = a - b;
-                        first.set(i+3, String.valueOf(c));
-                        first.set(i+2, "n");
-                        first.set(i+1, "n");
-                    }
-                }
+        boolean needToMulti = exp.contains(" * ");
+        boolean needToPlus = exp.contains(" + ") || exp.contains(" - ");
+        boolean needToSplit = exp.contains("(") || exp.contains(")");
+        boolean needToCompound = needToMulti && needToPlus;
+
+        if (needToSplit) {
+            int splitPointIndex = findSplitPointIndex(exp);
+
+            String firstExp = exp.substring(0, splitPointIndex);
+            String secondExp = exp.substring(splitPointIndex + 1);
+
+            char operator = exp.charAt(splitPointIndex);
+
+            exp = Calc.run(firstExp) + " " + operator + " " + Calc.run(secondExp);
+
+            return Calc.run(exp);
+        } else if (needToCompound) {
+            String[] bits = exp.split(" \\+ ");
+
+            String newExp = Arrays.stream(bits).mapToInt(Calc::run).mapToObj(e -> e + "").collect(Collectors.joining(" + "));
+
+            return run(newExp);
+        }
+
+        if (needToPlus) {
+            exp = exp.replaceAll("- ", "+ -");
+
+            String[] bits = exp.split(" \\+ ");
+
+            int sum = 0;
+
+            for (int i = 0; i < bits.length; i++) {
+                sum += Integer.parseInt(bits[i]);
+            }
+
+            return sum;
+        } else if (needToMulti) {
+            String[] bits = exp.split(" \\* ");
+
+            int sum = 1;
+
+            for (int i = 0; i < bits.length; i++) {
+                sum *= Integer.parseInt(bits[i]);
+            }
+
+            return sum;
+        }
+
+        throw new RuntimeException("해석 불가 : 올바른 계산식이 아니야");
+    }
+
+    private static int findSplitPointIndex(String exp) {
+        int index = findSplitPointIndexBy(exp, '+');
+
+        if (index >= 0) return index;
+
+        return findSplitPointIndexBy(exp, '*');
+    }
+
+    private static int findSplitPointIndexBy(String exp, char findChar) {
+        int brackesCount = 0;
+
+        for (int i = 0; i < exp.length(); i++) {
+            char c = exp.charAt(i);
+
+            if (c == '(') {
+                brackesCount++;
+            } else if (c == ')') {
+                brackesCount--;
+            } else if (c == findChar) {
+                if (brackesCount == 0) return i;
             }
         }
+        return -1;
+    }
 
-        first.removeAll(Arrays.asList("n"));
+    private static String stripOuterBrackets(String exp) {
+        int outerBracketsCount = 0;
 
-//
-
-        for(int i = 1; i < middle.size(); i++) {
-            int a = 0;
-            if(middle.get(i).contains("*")) {
-                a = Integer.parseInt(middle.get(i-1)) * Integer.parseInt(middle.get(i+1));
-                middle.set(i+1, String.valueOf(result));
-                middle.set(i,"n");
-                middle.set(i-1,"n");
-                middle.set(i+1, String.valueOf(a));
-
-            } else if(middle.get(i).contains("/")) {
-                a = Integer.parseInt(middle.get(i-1)) / Integer.parseInt(middle.get(i+1));
-                middle.set(i+1, String.valueOf(result));
-                middle.set(i,"n");
-                middle.set(i-1,"n");
-                middle.set(i+1, String.valueOf(a));
-            }
+        while (exp.charAt(outerBracketsCount) == '(' && exp.charAt(exp.length() - 1 - outerBracketsCount) == ')') {
+            outerBracketsCount++;
         }
 
-        middle.removeAll(Arrays.asList("n"));
+        if (outerBracketsCount == 0) return exp;
 
-        int count = 0;
-
-        for(int i = 0; i < middle.size(); i++) {
-            if(middle.contains("+")) {
-                count++;
-            } else if (middle.contains("-")) {
-                count++;
-            }
-        } if(count == 0) {
-            result = Integer.parseInt(middle.get(index));
-        }
-
-        if(bits.size() != middle.size()) {
-            for(int a = 0; a < middle.size(); a++) {
-                if (middle.get(a).contains("+")) {
-                    result += Integer.parseInt(middle.get(a+1));
-                } else if(middle.get(a).contains("-")) {
-                    result -= Integer.parseInt(middle.get(a+1));
-                }
-            }
-        } else {
-            for(int a = 0; a < bits.size(); a++) {
-                if (bits.get(a).contains("+")) {
-                    result += Integer.parseInt(bits.get(a+1));
-                } else if(bits.get(a).contains("-")) {
-                    result -= Integer.parseInt(bits.get(a+1));
-                }
-            }
-        }
-
-        if(first.size() == last.size()) {
-            return result;
-        } else {
-            middle.clear();
-            middle.addAll(first);
-            return result;
-        }
-
+        return exp.substring(outerBracketsCount, exp.length() - outerBracketsCount);
     }
 }
